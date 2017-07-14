@@ -131,7 +131,7 @@ def pick_top(distmat, contain_top_n):
     return distmat
 
 
-def train_200_mAP(normalize_flag=False, contain_top_n=None):
+def train_200_mAP(normalize_flag=False, re_ranking_flag=False, contain_top_n=None):
     print('train_200_mAP(normalize_flag=%s, contain_top_n=%s)' % (normalize_flag, contain_top_n))
     # valid mAP
     g = np.load('result/test_features/train_200_gallery_features.npy')
@@ -142,6 +142,8 @@ def train_200_mAP(normalize_flag=False, contain_top_n=None):
         g = normalize(g)
         p = normalize(p)
     distmat = compute_distmat(g, p)
+    if re_ranking_flag:
+        re_ranking(distmat.transpose(), p, np.array(range(g.shape[0])), g)
     if contain_top_n is not None:
         distmat = pick_top(distmat, contain_top_n=contain_top_n)
     map1, map2 = mAP(distmat, glabels=g_labels, plabels=p_labels, top_n=200)
@@ -173,7 +175,7 @@ def valid_mAP(normalize_flag=False, re_ranking_flag=False, contain_top_n=None):
             p = normalize(p)
         distmat = compute_distmat(g, p)
         if re_ranking_flag:
-            re_ranking(distmat.transpose(), p, np.array(range(g.shape[0])), g, k1=20, lambda_=0.3, top_n=100)
+            re_ranking(distmat.transpose(), p, np.array(range(g.shape[0])), g)
         if contain_top_n is not None:
             distmat = pick_top(distmat, contain_top_n=contain_top_n)
         map1, map2 = mAP(distmat, glabels=g_labels, plabels=p_labels, top_n=200)
@@ -245,7 +247,7 @@ def generate_first_predict_xml(normalize_flag=False, re_ranking_flag=False, cont
     print('start compute distance')
     distmat = compute_distmat(g, p)
     if re_ranking_flag:
-        re_ranking(distmat.transpose(), p, g_names, g, k1=20, lambda_=0.3, top_n=100)
+        re_ranking(distmat.transpose(), p, g_names, g)
     if contain_top_n is not None:
         distmat = pick_top(distmat, contain_top_n=contain_top_n)
     print('start sort')
@@ -255,7 +257,7 @@ def generate_first_predict_xml(normalize_flag=False, re_ranking_flag=False, cont
 
 
 if __name__ == '__main__':
-    # train_200_mAP(normalize_flag=False, re_ranking_flag=True)
+    train_200_mAP(normalize_flag=False, re_ranking_flag=True)
     valid_mAP(normalize_flag=False, re_ranking_flag=True)
     # generate_first_predict_xml(normalize_flag=False, re_ranking_flag=True)
     # have to
