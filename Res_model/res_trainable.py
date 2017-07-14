@@ -110,13 +110,13 @@ class ResnetReid:
         assert resnet_avg_pool.get_shape().as_list()[1:] == [1, 1, 2048]
         self.resnet_avg_pool_flat = tf.reshape(resnet_avg_pool, [-1, 1 * 1 * 2048])
         self.fc1_add = tf.layers.dense(inputs=self.resnet_avg_pool_flat, units=1024,
-                                       kernel_initializer=tf.truncated_normal_initializer(0.0, 0.01), use_bias=False,
+                                       kernel_initializer=tf.truncated_normal_initializer(0.0, 0.0315), use_bias=False,
                                        name='fc1_add')
         self.bn1_add = tf.layers.batch_normalization(inputs=self.fc1_add, training=train_test_mode, name='bn1_add')
         assert self.bn1_add.get_shape().as_list()[1:] == [1024]
         self.relu1_add = tf.nn.relu(features=self.bn1_add)
         self.fc2_add = tf.layers.dense(inputs=self.relu1_add, units=128,
-                                       kernel_initializer=tf.truncated_normal_initializer(0.0, 0.1), use_bias=False,
+                                       kernel_initializer=tf.truncated_normal_initializer(0.0, 0.044), use_bias=False,
                                        name='fc2_add')
         self.output = self.fc2_add
 
