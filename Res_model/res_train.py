@@ -114,7 +114,7 @@ def train(retain_flag=True, start_step=0):
             _, loss_value = sess.run([train_op, loss], feed_dict={input_batch: batch, train_mode: True})
             # _, loss_value, f = sess.run([train_op, loss, resnet_reid.output],
             #                             feed_dict={input_batch: batch, train_mode: True})
-            print('feature abs mean: %s' % (np.mean(np.abs(f))))
+            # print('feature abs mean: %s' % (np.mean(np.abs(f))))
             duration = time.time() - start_time
             assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
 
