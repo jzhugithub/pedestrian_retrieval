@@ -10,6 +10,9 @@ from res_trainable import Train_Flags
 from res_trainable import IMAGE_HEIGHT, IMAGE_WIDTH
 import tensorflow.contrib.slim as slim
 from resnet_v2 import resnet_v2_50, resnet_arg_scope
+from res_cmc import train_200_mAP, valid_mAP, generate_first_predict_xml
+
+
 
 train_flags = Train_Flags()
 
@@ -80,7 +83,7 @@ def train(retain_flag=True, start_step=0):
         # define summary and saver
         summary_op = tf.summary.merge_all()
         summary_writer = tf.summary.FileWriter(train_flags.output_summary_path, graph=sess.graph)
-        saver = tf.train.Saver(max_to_keep=6)
+        saver = tf.train.Saver(max_to_keep=8)
 
         # retrain or continue
         if retain_flag:
@@ -108,10 +111,10 @@ def train(retain_flag=True, start_step=0):
 
             # start run
             start_time = time.time()
-            _, loss_value = sess.run([train_op, loss], feed_dict={input_batch: batch, train_mode: True})
-            # _, loss_value, f = sess.run([train_op, loss, resnet_reid.output],
-            #                             feed_dict={input_batch: batch, train_mode: True})
-            # print('feature abs mean: %s' % (np.mean(np.abs(f))))
+            # _, loss_value = sess.run([train_op, loss], feed_dict={input_batch: batch, train_mode: True})
+            _, loss_value, f = sess.run([train_op, loss, resnet_reid.output],
+                                        feed_dict={input_batch: batch, train_mode: True})
+            print('feature abs mean: %s' % (np.mean(np.abs(f))))
             duration = time.time() - start_time
             assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
 
@@ -235,6 +238,12 @@ def generate_features(predict_flag, gallery_flag):
             np.save(features_npy_path, features)
 
 
+def test():
+    res = ResnetReid()
+    print res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id)
+    print res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id)
+    res.get_train_image_batch_direct(train_flags.id_path_train_path, train_flags.return_id_num, train_flags.image_num_every_id)
+
 if __name__ == '__main__':
     train(retain_flag=True, start_step=1)
     generate_features(predict_flag=True, gallery_flag=True)
@@ -242,8 +251,13 @@ if __name__ == '__main__':
     generate_features(predict_flag=False, gallery_flag=True)
     generate_features(predict_flag=False, gallery_flag=False)
 
-    # res = ResnetReid()
-    # print res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id)
-    # print res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id)
-    # print res.get_valid_image_batch(0, 72, train_flags.id_image_path, gallery_flag=False)
-    # res.get_train_image_batch_fast(train_flags.id_path_train_path, train_flags.return_id_num, train_flags.image_num_every_id)
+    train_200_mAP(normalize_flag=False, re_ranking_flag=True)
+    valid_mAP(normalize_flag=False, re_ranking_flag=True)
+    generate_first_predict_xml(normalize_flag=False, re_ranking_flag=True)
+    # have to
+    # 1. delete xml's first line(<?xml version="1.0"?>)
+    # 2. delete last line(nothing in last line)
+    # 3. add a space in the second line, after "PedestrianRetrieval"
+    #    so the second line will be:<Info evaluateType="11" mediaFile="PedestrianRetrieval" />
+    # 4. the xml's size is 6.4 MB (6,433,396 bytes)
+
