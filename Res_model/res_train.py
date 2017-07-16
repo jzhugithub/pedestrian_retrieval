@@ -48,7 +48,7 @@ def train(retain_flag=True, start_step=0):
                               'process_image')
         with slim.arg_scope(resnet_arg_scope()):
             # input_batch: [batch, height, width, 3] values scaled [0.0, 1.0], dtype = tf.float32
-            resnet_avg_pool, end_points = resnet_v2_50(input_batch, is_training=False, global_pool=True)
+            resnet_avg_pool, end_points = resnet_v2_50(input_batch, is_training=train_mode, global_pool=True)
         # Define the scopes that you want to exclude for restoration
         variables_to_restore = slim.get_variables_to_restore(exclude=['beta2_power'])
         resnet_reid.build(resnet_avg_pool, train_mode)
