@@ -242,7 +242,7 @@ def generate_path_label():
     id_path = get_id_path_dict('../data/id_path.pkl')
     # split train and valid path
     id_path_array = dict2array(id_path)
-    X_train_array, X_valid_array = train_test_split(id_path_array, test_size=0.04, random_state=1)
+    X_train_array, X_valid_array = train_test_split(id_path_array, test_size=0.08, random_state=1)
     X_train = array2dict(X_train_array)
     X_valid = array2dict(X_valid_array)
     print('train id: ' + str(len(X_train)))
@@ -272,7 +272,7 @@ def generate_path_label():
     generate_path_label_order_csv('../data/valid_gallery.csv', gallery_valid, glabels_valid)  # just for count
     print('probe_valid: ' + str(len(probe_valid)))
     print('gallery_valid: ' + str(len(gallery_valid)))
-    # generate predict csv
+    # generate predict file
     gallery_predict, probe_predict = generate_predict_path()
     generate_image_file(probe_predict, '../data/id_image/predict_probe_image_%s_%s_%s.pkl', 2000)# do not change 2000!!!
     generate_image_file(gallery_predict, '../data/id_image/predict_gallery_image_%s_%s_%s.pkl', 2000)# do not change 2000!!!
