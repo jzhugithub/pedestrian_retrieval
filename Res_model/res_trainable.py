@@ -1,5 +1,5 @@
-IMAGE_HEIGHT = 256
-IMAGE_WIDTH = 128
+IMAGE_HEIGHT = 224
+IMAGE_WIDTH = 112
 
 
 import tensorflow as tf
@@ -40,7 +40,7 @@ class Train_Flags():
         self.change_file_step = 400
 
         self.initial_learning_rate = 0.0001
-        self.decay_rate = 0.3
+        self.decay_rate = 0.5
         self.decay_steps = 10000
 
         self.return_id_num = 20
