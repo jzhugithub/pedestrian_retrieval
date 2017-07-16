@@ -1,5 +1,5 @@
-IMAGE_HEIGHT = 224
-IMAGE_WIDTH = 112
+IMAGE_HEIGHT = 256
+IMAGE_WIDTH = 128
 
 
 import tensorflow as tf
@@ -33,14 +33,14 @@ class Train_Flags():
         self.output_test_features_path = os.path.join(self.current_file_path, 'result', 'test_features')
         self.resnet_checkpoint_file = 'resnet_v2_50.ckpt'
         self.check_path_exist()
-        self.checkpoint_name = 'resnet_enhance.ckpt'
+        self.checkpoint_name = 'resnet_IDE.ckpt'
 
         self.max_step = 30001
         self.test_batch_size = 80  # do not change 80!!!
         self.change_file_step = 400
 
         self.initial_learning_rate = 0.0001
-        self.decay_rate = 0.5
+        self.decay_rate = 0.3
         self.decay_steps = 10000
 
         self.return_id_num = 20
@@ -119,6 +119,13 @@ class ResnetReid:
                                        kernel_initializer=tf.truncated_normal_initializer(0.0, 0.044), use_bias=False,
                                        name='fc2_add')
         self.output = self.fc2_add
+
+        # assert resnet_avg_pool.get_shape().as_list()[1:] == [1, 1, 2048]
+        # self.resnet_avg_pool_flat = tf.reshape(resnet_avg_pool, [-1, 1 * 1 * 2048])
+        # self.fc1_add = tf.layers.dense(inputs=self.resnet_avg_pool_flat, units=128,
+        #                                kernel_initializer=tf.truncated_normal_initializer(0.0, 0.0001), use_bias=False,
+        #                                name='fc1_add')
+        # self.output = self.fc1_add
 
     # hard triplet loss
     def calc_loss(self, features, return_id_num, image_num_every_id, m):
