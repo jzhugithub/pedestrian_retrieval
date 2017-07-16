@@ -44,7 +44,7 @@ class Train_Flags():
 
         self.output_feature_dim = 800
         self.dropout = 0.9
-        self.initial_learning_rate = 0.0001
+        self.initial_learning_rate = 0.01
         self.learning_rate_decay_factor = 0.9
         self.moving_average_decay = 0.999999
         self.tau1 = 0.6
@@ -425,6 +425,42 @@ class Vgg19:
                 capacity=1 + batch_size
             )
             return tests
+
+    def classify_batch_inputs(self, dataset_test_csv_file_path, batch_size):
+        if (os.path.isfile(dataset_test_csv_file_path) != True):
+            raise ValueError('No data files found for this test dataset')
+
+        filename_queue = tf.train.string_input_producer([dataset_test_csv_file_path], shuffle=False)
+        reader = tf.TextLineReader()
+        _, serialized_example = reader.read(filename_queue)
+        image_path, image_label = tf.decode_csv(serialized_example,[["image_path"], ["mage_label"]])
+
+        # input
+        file = tf.read_file(image_path)
+        image = tf.image.decode_jpeg(file, channels=3)
+        image = tf.cast(image, dtype=tf.float32)
+
+        # resized_test = tf.image.resize_images(test_image, (IMAGE_HEIGHT, IMAGE_WIDTH))
+        resized_image = tf.image.resize_images(image, (IMAGE_HEIGHT, IMAGE_WIDTH + IMAGE_WIDTH / 4))
+        resized_image = tf.image.crop_to_bounding_box(resized_image, 0, IMAGE_WIDTH / 8, IMAGE_HEIGHT, IMAGE_WIDTH)
+
+        onehot_label = tf.one_hot(tf.cast(image_label, dtype=tf.int16), 1000)
+
+        # generate batch
+        batch = tf.train.batch(
+            [resized_image, onehot_label],
+            batch_size=batch_size,
+            capacity=1 + batch_size
+        )
+        return batch
+
+    def classify_train_batch_inputs(self, dataset_test_csv_file_path, batch_size):
+        with tf.name_scope('classify_train_batch_inputs'):
+            return  self.classify_batch_inputs(dataset_test_csv_file_path, batch_size)
+
+    def classify_valid_batch_inputs(self, dataset_test_csv_file_path, batch_size):
+        with tf.name_scope('classify_valid_batch_inputs'):
+            return  self.classify_batch_inputs(dataset_test_csv_file_path, batch_size)
 
     def avg_pool(self, bottom, name):
         return tf.nn.avg_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME', name=name)
