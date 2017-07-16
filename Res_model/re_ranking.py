@@ -91,17 +91,17 @@ def R_star(feature, feature_name, p_feature, g_features, g_names, pg_name_featur
     return R_pk_set_expansion
 
 
-def get_mahe_distance(feature1, feature2):
+def get_mahe_distance(feature1, feature2, maxdist):
     '''
     :param feature1: feature_dim
     :param feature2: feature_dim
     :return: Mahalanobis distance
     '''
     # return np.exp(-np.sum((feature1 - feature2) ** 2)) # this should be Mahalanobis distance, but it's too big
-    return np.exp(-np.mean((feature1 - feature2) ** 2))  # average Mahalanobis distance on features
+    return np.exp(-np.linalg.norm(feature1 - feature2) / maxdist) / 2
 
 
-def get_V_gi_dict(g_name_order_dict, pg_name_feature_dict, p_feature, g_features, g_names, R_star_pk_name_set, k):
+def get_V_gi_dict(g_name_order_dict, pg_name_feature_dict, p_feature, g_features, g_names, R_star_pk_name_set, maxdist, k):
     '''
     :param g_name_order_dict: gallery_num
     :param pg_name_feature_dict: gallery_num + 1
@@ -119,13 +119,13 @@ def get_V_gi_dict(g_name_order_dict, pg_name_feature_dict, p_feature, g_features
                                      pg_name_feature_dict, k=k)
         for gj_name in R_star_gik_name_set:
             V_gi[g_name_order_dict[gj_name]] = get_mahe_distance(pg_name_feature_dict[gj_name],
-                                                                 pg_name_feature_dict[gi_name])
+                                                                 pg_name_feature_dict[gi_name], maxdist)
         V_gi = V_gi / V_gi.sum()
         V_gi_dict[gi_name] = V_gi
     return V_gi_dict
 
 
-def get_jaccard_distance(p_feature, g_names, g_features, k1, k2):
+def get_jaccard_distance(p_feature, g_names, g_features, maxdist, k1, k2):
     '''
     :param p_feature: feature_dim
     :param g_names: gallery_num
@@ -141,12 +141,11 @@ def get_jaccard_distance(p_feature, g_names, g_features, k1, k2):
     # get V_gi_dict
     R_star_pk_name_set = R_star(p_feature, -1, p_feature, g_features, g_names, pg_name_feature_dict, k=k1)
     V_gi_dict = get_V_gi_dict(g_name_order_dict, pg_name_feature_dict, p_feature, g_features, g_names,
-                              R_star_pk_name_set, k=k1)
-
+                              R_star_pk_name_set, maxdist, k=k1)
     # get V_p with local query expansion, implement as literature function (11)
     V_p_V_gi_name_set = N(p_feature, p_feature, -1, g_features, g_names, k=k2)
     V_p_V_gi_dict = get_V_gi_dict(g_name_order_dict, pg_name_feature_dict, p_feature, g_features, g_names,
-                              V_p_V_gi_name_set, k=k2)
+                              V_p_V_gi_name_set, maxdist, k=k2)
     V_p = np.zeros(g_features.shape[0])
     for gi_name in V_p_V_gi_name_set:
         V_p += V_p_V_gi_dict[gi_name]
@@ -162,7 +161,7 @@ def get_jaccard_distance(p_feature, g_names, g_features, k1, k2):
     return djpg
 
 
-def re_ranking(distmat, p_features, g_names, g_features, k1=12, k2=6, lambda_=0.4, top_n=100):
+def re_ranking(distmat, p_features, g_names, g_features, k1=8, k2=6, lambda_=0.05, top_n=100):
     '''
     :param distmat: probe_num * gallery_num
     :param p_features: probe_num * feature_dim
@@ -175,13 +174,14 @@ def re_ranking(distmat, p_features, g_names, g_features, k1=12, k2=6, lambda_=0.
     :return: distance with re-ranking
     '''
     print('re_ranking()')
+    maxdist = distmat.max()
     for i in range(p_features.shape[0]):
         dist_pg = distmat[i]
         orders = np.argsort(dist_pg)
         g_names_sort = g_names[orders]
 
         jdist_pg_sort_top_n = get_jaccard_distance(p_features[i], g_names_sort[:top_n], g_features[orders[:top_n]],
-                                                   k1=k1, k2=k2)
+                                                   maxdist, k1=k1, k2=k2)
         jdist_pg = np.ones(dist_pg.shape)
         for j, order in enumerate(orders[:top_n]):
             jdist_pg[order] = jdist_pg_sort_top_n[j]
