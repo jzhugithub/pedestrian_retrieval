@@ -251,7 +251,7 @@ if __name__ == '__main__':
     generate_features(predict_flag=False, gallery_flag=False)
 
     train_200_mAP(normalize_flag=False, re_ranking_flag=True)
-    valid_mAP(normalize_flag=False, re_ranking_flag=True)
+    valid_mAP(normalize_flag=False, re_ranking_flag=True, show_flag=False)
     generate_first_predict_xml(normalize_flag=False, re_ranking_flag=True)
     # have to
     # 1. delete xml's first line(<?xml version="1.0"?>)
