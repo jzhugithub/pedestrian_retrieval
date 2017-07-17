@@ -98,15 +98,15 @@ def train(retain_flag=True, start_step=0):
         print('start training')
         for step in range(start_step, train_flags.max_step):
             # input image
-            batch = resnet_reid.get_train_image_batch_direct(train_flags.id_path_train_path, train_flags.return_id_num,
-                                                             train_flags.image_num_every_id)
-            # if step % train_flags.change_file_step == 0: # load mode
-            #     change_file_flag = True
-            # else:
-            #     change_file_flag = False
-            # batch = resnet_reid.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num,
-            #                                           train_flags.return_id_num, train_flags.image_num_every_id,
-            #                                           change_file=change_file_flag)
+            # batch = resnet_reid.get_train_image_batch_direct(train_flags.id_path_train_path, train_flags.return_id_num,
+            #                                                  train_flags.image_num_every_id)
+            if step == 0: # load mode
+                change_file_flag = True
+            else:
+                change_file_flag = False
+            batch = resnet_reid.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num,
+                                                      train_flags.return_id_num, train_flags.image_num_every_id,
+                                                      change_file=change_file_flag)
 
             # start run
             start_time = time.time()
