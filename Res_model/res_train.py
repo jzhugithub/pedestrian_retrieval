@@ -44,8 +44,7 @@ def train(retain_flag=True, start_step=0):
         # define model
         resnet_reid = ResnetReid(train_flags.dropout)
         input_batch = tf.cond(train_mode, lambda: resnet_reid.process_image(input_batch, train_flags.train_batch_size),
-                              lambda: input_batch,
-                              'process_image')
+                              lambda: input_batch, 'process_image')
         with slim.arg_scope(resnet_arg_scope()):
             # input_batch: [batch, height, width, 3] values scaled [0.0, 1.0], dtype = tf.float32
             resnet_avg_pool, end_points = resnet_v2_50(input_batch, is_training=train_mode, global_pool=True)
@@ -66,9 +65,9 @@ def train(retain_flag=True, start_step=0):
                                         staircase=True)
         vars_to_optimize = [v for v in tf.trainable_variables()]
         # vars_to_optimize = [v for v in tf.trainable_variables() if ('add' in v.name)]
-        print '\nvariables to optimize'
+        print('\nvariables to optimize')
         for v in vars_to_optimize:
-            print v.name, v.get_shape().as_list()
+            print(v.name, v.get_shape().as_list())
             tf.summary.histogram(v.name, v)
         opt = tf.train.AdamOptimizer(lr)
 
@@ -240,8 +239,8 @@ def generate_features(predict_flag, gallery_flag):
 
 def test():
     res = ResnetReid()
-    print res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id)
-    print res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id)
+    print(res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id))
+    print(res.get_train_image_batch(train_flags.id_image_path, train_flags.id_image_train_num, train_flags.return_id_num, train_flags.image_num_every_id))
     res.get_train_image_batch_direct(train_flags.id_path_train_path, train_flags.return_id_num, train_flags.image_num_every_id)
 
 if __name__ == '__main__':
