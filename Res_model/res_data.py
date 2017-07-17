@@ -256,7 +256,7 @@ def generate_path_label():
     print('valid id: ' + str(len(X_valid)))
     # generate train file
     # if your internal storage is more than 16g, recommend use load mode!!!
-    generate_id_image_file(X_train, '../data/id_image/id_image_train_%s_%s_%s.pkl', id_num_in_part=3000) # load mode
+    generate_id_image_file(X_train, '../data/id_image/id_image_train_%s_%s_%s.pkl', id_num_in_part=int(len(X_train)/2)) # load mode
     with open('../data/id_path_train.pkl', "wb") as f:
         pickle.dump(X_train, f)
     # generate train_200 file
