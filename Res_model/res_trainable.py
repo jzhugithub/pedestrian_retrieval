@@ -9,7 +9,7 @@ from tensorflow.python.platform import gfile
 import csv
 from vgg_preprocessing import my_preprocess_train
 import random
-import cPickle as pickle
+import pickle
 from res_data import process_image
 import skimage.io
 
@@ -33,7 +33,7 @@ class Train_Flags():
         self.output_test_features_path = os.path.join(self.current_file_path, 'result', 'test_features')
         self.resnet_checkpoint_file = 'resnet_v2_50.ckpt'
         self.check_path_exist()
-        self.checkpoint_name = 'resnet_maxpool.ckpt'
+        self.checkpoint_name = 'resnet.ckpt'
 
         self.max_step = 30001
         self.test_batch_size = 80  # do not change 80!!!
@@ -75,6 +75,8 @@ class Train_Flags():
             gfile.MakeDirs(self.output_check_point_path)
         if not gfile.Exists(self.output_test_features_path):
             gfile.MakeDirs(self.output_test_features_path)
+        if not gfile.Exists(self.id_image_path):
+            gfile.MakeDirs(self.id_image_path)
 
 
 class ResnetReid:
