@@ -33,7 +33,7 @@ class Train_Flags():
         self.output_test_features_path = os.path.join(self.current_file_path, 'result', 'test_features')
         self.resnet_checkpoint_file = 'resnet_v2_50.ckpt'
         self.check_path_exist()
-        self.checkpoint_name = 'resnet_IDE.ckpt'
+        self.checkpoint_name = 'resnet_maxpool.ckpt'
 
         self.max_step = 30001
         self.test_batch_size = 80  # do not change 80!!!
@@ -47,7 +47,7 @@ class Train_Flags():
         self.image_num_every_id = 4
         self.train_batch_size = self.return_id_num * self.image_num_every_id
         self.output_feature_dim = 128
-        self.dropout = 0.9
+        self.dropout = 0.5
         # self.tau1 = 0.6
         # self.tau2 = 0.01
         # self.beta = 0.002
