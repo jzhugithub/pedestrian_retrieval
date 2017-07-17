@@ -150,7 +150,7 @@ def train_200_mAP(normalize_flag=False, re_ranking_flag=False, contain_top_n=Non
     print('train_200 map: %f, %f ' % (map1, map2))
 
 
-def valid_mAP(normalize_flag=False, re_ranking_flag=False, contain_top_n=None):
+def valid_mAP(normalize_flag=False, re_ranking_flag=False, show_flag=True, contain_top_n=None):
     print('valid_mAP(normalize_flag=%s, contain_top_n=%s)' % (normalize_flag, contain_top_n))
     min_step = 100000000
     max_step = 0
@@ -181,8 +181,9 @@ def valid_mAP(normalize_flag=False, re_ranking_flag=False, contain_top_n=None):
         map1, map2 = mAP(distmat, glabels=g_labels, plabels=p_labels, top_n=200)
         map2_all.append(map2)
         print('step: %d, map: %f, %f ' % (step, map1, map2))
-    plt.plot(range(min_step, max_step + 1, 5000), map2_all)
-    plt.show()
+    if show_flag:
+        plt.plot(range(min_step, max_step + 1, 5000), map2_all)
+        plt.show()
 
 
 def create_xml(pname, gnames, xml_path):
