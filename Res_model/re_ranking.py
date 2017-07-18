@@ -161,7 +161,7 @@ def get_jaccard_distance(p_feature, g_names, g_features, maxdist, k1, k2):
     return djpg
 
 
-def re_ranking(distmat, p_features, g_names, g_features, k1=8, k2=6, lambda_=0.05, top_n=100):
+def re_ranking(distmat, p_features, g_names, g_features, k1=10, k2=6, lambda_=0.05, top_n=100):
     '''
     :param distmat: probe_num * gallery_num
     :param p_features: probe_num * feature_dim
