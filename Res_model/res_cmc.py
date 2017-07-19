@@ -8,7 +8,79 @@ from xml.dom.minidom import Document
 import os
 import matplotlib.pyplot as plt
 from sklearn.metrics import average_precision_score
-from re_ranking import re_ranking
+from re_ranking import re_ranking as re_ranking_my
+from re_ranking_luo import re_ranking as re_ranking_luo
+
+
+def _cmc_core(D, G, P):
+    m, n = D.shape
+    order = np.argsort(D, axis=0)
+    match = (G[order] == P)
+    return (match.sum(axis=1) * 1.0 / n).cumsum()
+
+
+def cmc(distmat, glabels=None, plabels=None, ds=None, repeat=None):
+    """Compute the Cumulative Match Characteristic (CMC)
+    This function assumes that gallery labels have no duplication. If there are
+    duplications, random downsampling will be performed on gallery labels, and
+    the computation will be repeated to get an average result.
+    Parameters
+    ----------
+    distmat : numpy.ndarray
+        The distance matrix. ``distmat[i, j]`` is the distance between i-th
+        gallery sample and j-th probe sample.
+    glabels : numpy.ndarray or None, optional
+    plabels : numpy.ndarray or None, optional
+        If None, then gallery and probe labels are assumed to have no
+        duplications. Otherwise, they represent the vector of gallery and probe
+        labels. Default is None.
+    ds : int or None, optional
+        If None, then no downsampling on gallery labels will be performed.
+        Otherwise, it represents the number of gallery labels to be randomly
+        selected. Default is None.
+    repeat : int or None, optional
+        If None, then the function will repeat the computation for 100 times
+        when downsampling is performed. Otherwise, it specifies the number of
+        repetition. Default is None.
+    Returns
+    -------
+    out : numpy.ndarray
+        The rank-1 to rank-m accuracy, where m is the number of (downsampled)
+        gallery labels.
+    """
+    m, n = distmat.shape
+    if glabels is None and plabels is None:
+        glabels = np.arange(0, m)
+        plabels = np.arange(0, n)
+    if isinstance(glabels, list):
+        glabels = np.asarray(glabels)
+    if isinstance(plabels, list):
+        plabels = np.asarray(plabels)
+    ug = np.unique(glabels)
+    if ds is None:
+        ds = ug.size
+    if repeat is None:
+        if ds == ug.size and ug.size == len(glabels):
+            repeat = 1
+        else:
+            repeat = 100
+
+    ret = 0
+    for __ in xrange(repeat):
+        # Randomly select gallery labels
+        G = np.random.choice(ug, ds, replace=False)
+        # Select corresponding probe samples
+        p_inds = [i for i in xrange(len(plabels)) if plabels[i] in G]
+        P = plabels[p_inds]
+        # Randomly select one gallery sample per label selected
+        D = np.zeros((ds, P.size))
+        for i, g in enumerate(G):
+            samples = np.where(glabels == g)[0]
+            j = np.random.choice(samples)
+            D[i, :] = distmat[j, p_inds]
+        # Compute CMC
+        ret += _cmc_core(D, G, P)
+    return ret / repeat
 
 
 def compute_distmat(gallery, probe):
@@ -92,7 +164,7 @@ def mean_ap(distmat, query_ids=None, gallery_ids=None, query_cams=None, gallery_
     # Sort and find correct matches 按行获得从小到大排序的索引值
     indices = np.argsort(distmat, axis=1)
     matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
-    print matches[:10, :5]
+    print(matches[:10, :5])
     # Compute AP for each query
     aps = []
     for i in range(m):
@@ -143,7 +215,8 @@ def train_200_mAP(normalize_flag=False, re_ranking_flag=False, contain_top_n=Non
         p = normalize(p)
     distmat = compute_distmat(g, p)
     if re_ranking_flag:
-        re_ranking(distmat.transpose(), p, np.array(range(g.shape[0])), g)
+        re_ranking_my(distmat.transpose(), p, np.array(range(g.shape[0])), g)
+        # distmat = re_ranking_luo(p, g).T
     if contain_top_n is not None:
         distmat = pick_top(distmat, contain_top_n=contain_top_n)
     map1, map2 = mAP(distmat, glabels=g_labels, plabels=p_labels, top_n=200)
@@ -175,7 +248,8 @@ def valid_mAP(normalize_flag=False, re_ranking_flag=False, show_flag=True, conta
             p = normalize(p)
         distmat = compute_distmat(g, p)
         if re_ranking_flag:
-            re_ranking(distmat.transpose(), p, np.array(range(g.shape[0])), g)
+            re_ranking_my(distmat.transpose(), p, np.array(range(g.shape[0])), g)
+            # distmat = re_ranking_luo(p, g).T
         if contain_top_n is not None:
             distmat = pick_top(distmat, contain_top_n=contain_top_n)
         map1, map2 = mAP(distmat, glabels=g_labels, plabels=p_labels, top_n=200)
@@ -248,7 +322,8 @@ def generate_first_predict_xml(normalize_flag=False, re_ranking_flag=False, cont
     print('start compute distance')
     distmat = compute_distmat(g, p)
     if re_ranking_flag:
-        re_ranking(distmat.transpose(), p, g_names, g)
+        re_ranking_my(distmat.transpose(), p, g_names, g)
+        # distmat = re_ranking_luo(p, g).T
     if contain_top_n is not None:
         distmat = pick_top(distmat, contain_top_n=contain_top_n)
     print('start sort')
